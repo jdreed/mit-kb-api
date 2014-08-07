@@ -2,6 +2,8 @@ import flask
 import json
 import logging
 import sys
+import xml.etree.ElementTree as xmletree
+import html5lib
 
 from flask.ext.restful import Api, Resource, reqparse, abort, fields, marshal
 from werkzeug.exceptions import (HTTPException, Gone, InternalServerError,
@@ -359,8 +361,18 @@ class Article(AuthenticatedResource):
         if fmt == 'html':
             return {'html': confluence_session.renderContent(**render_kwargs) }
         if fmt == 'div':
-            return {'html': confluence_session.renderContent(style='clean',
-                                                            **render_kwargs)}
+            html = confluence_session.renderContent(style='clean',
+                                                    **render_kwargs)
+            parsed = html5lib.parseFragment(html, treebuilder='etree',
+                                            namespaceHTMLElements=False)
+            for el in parsed.findall(".//img"):
+                if el.get('src').startswith('/confluence'):
+                    el.set('src', 'http://kb.mit.edu' + el.get('src'))
+            for el in parsed.findall(".//a"):
+                if el.get('href', '').startswith('/confluence'):
+                    el.set('href', 'http://kb.mit.edu' + el.get('href'))
+            cleaned = xmletree.tostring(parsed[0], method='html' )
+            return {'html':  cleaned}
         return { 'page': marshal(page,
                                  marshal_fields)}
 
