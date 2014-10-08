@@ -12,7 +12,7 @@ CONFIG_REQUIRED = {'Connection': ['host', 'username', 'password'],
                    'Authentication': ['dbname'],
                    }
 # Where to look for the config file
-CONFIG_FILE_DEFAULTS=['/var/www/kb_api/kb-api.ini',
+CONFIG_FILE_DEFAULTS=['/var/www/kb_api/conf/kb-api.ini',
                       os.path.join(os.getcwd(), 'kb-api.ini')]
 
 CONFIG_DEFAULTS="""
