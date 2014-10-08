@@ -9,7 +9,7 @@ logger = logging.getLogger('kb_api.config')
 # Map of sections and options that must be present
 CONFIG_REQUIRED = {'Connection': ['host', 'username', 'password'],
                    'API': ['prefix'],
-                   'Authentication': ['dbname'],
+                   'Authentication': ['db_uri'],
                    }
 # Where to look for the config file
 CONFIG_FILE_DEFAULTS=['/var/www/kb_api/conf/kb-api.ini',
@@ -21,7 +21,7 @@ deleted_article=This article has been deleted.
 not_authenticated=You did not supply an access token.
 """
 
-class APIConfig(SafeConfigParser):
+class _APIConfig(SafeConfigParser):
     def __init__(self, config_file=None):
         SafeConfigParser.__init__(self)
         logger.debug("Parsing default text")
@@ -42,3 +42,17 @@ class APIConfig(SafeConfigParser):
                     err = err.format(section, option)
                     logger.error(err)
                     raise ValueError(err)
+
+    @property
+    def default_permissions(self):
+        if not self.has_section('DefaultPermissions'):
+            return {}
+        return dict(self.items('DefaultPermissions'))
+
+    @property
+    def anonymous_permissions(self):
+        if not self.has_section('AnonymousPermissions'):
+            return {}
+        return dict(self.items('AnonymousPermissions'))
+
+APIConfig = _APIConfig()

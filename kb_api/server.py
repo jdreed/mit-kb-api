@@ -15,15 +15,15 @@ from confluence.shortcode import code2id
 from confluence.rpc import Session, RemoteException
 from xml.sax import saxutils
 
-from .config import APIConfig
+from .config import APIConfig as config
+from .database import db
 from . import auth
 
 logger = logging.getLogger('kb_api.server')
-config = APIConfig()
+
 confluence_session = Session(config.get('Connection', 'host'))
 confluence_session.login(config.get('Connection', 'username'),
                          config.get('Connection', 'password'))
-authcontext = auth.AuthenticationContext()
 
 def html_escape(thing):
     if isinstance(thing, dict):
@@ -33,15 +33,12 @@ def html_escape(thing):
     return thing
 
 def require_access(user, op=None, space=None):
-    with authcontext as ctx:
-        if op is None and space is None:
-            return user.authenticated
-        if user.can(op, space):
-            return True
-        if user.authenticated:
-            raise Forbidden(config.get('Text', 'forbidden'))
-        else:
-            raise Unauthorized(config.get('Text', 'not_logged_in'))
+    logger.debug("require_access(%s, %s, %s)", user, op, space)
+    logger.debug(user.permissions)
+    if user.can(op, space):
+        return True
+    logger.debug("access denied")
+    raise Forbidden(config.get('Text', 'forbidden'))
 
 def cors_headers():
     # flask-restful's CORS support is wrong.  It does not correctly
@@ -60,20 +57,30 @@ def cors_headers():
 
 def get_authentication(f):
     def auth_decorator(*args, **kwargs):
-        auth_header = flask.request.headers.get('Authorization', '')
-        token = auth.Token.extract(auth_header)
-        logger.debug('Token retrieved: %s', token)
-        with authcontext as ctx:
-            api_user = ctx.lookup_user(token)
-            if api_user is None:
-                logger.debug("User passed invalid token")
+        auth_header = flask.request.headers.get('Authorization', None)
+        if auth_header is None:
+            token = auth.AnonymousToken()
+        else:
+            try:
+                token = auth.Token.extract(auth_header)
+            except auth.MalformedTokenError:
+                raise BadRequest("Malformed token")
+            except auth.InvalidTokenError:
                 raise Unauthorized(config.get('Text', 'not_logged_in'))
-            kwargs['_api_user'] = api_user
-            logger.info("User: %s", kwargs['_api_user'])
-        # Special case this here.  Supplying an invalid token,
-        # even for anonymous methods, is not supported.
+        kwargs['_api_user'] = token
+        logger.debug("Retrieved token: %s", kwargs['_api_user'])
         return f(*args, **kwargs)
     return auth_decorator
+
+def require_authentication(f):
+    def auth_decorator(*args, **kwargs):
+        if '_api_user' not in kwargs:
+            raise InternalServerError('require_authentication called before get_authentication')
+        if not kwargs['_api_user'].authenticated:
+            raise Unauthorized(config.get('Text', 'not_logged_in'))
+        return f(*args, **kwargs)
+    return auth_decorator
+
 
 class ParsedException:
     """Parse an exception for formatting later"""
@@ -161,6 +168,10 @@ class KBAPI(Api):
         return rv
 
     def handle_error(self, e):
+        if not flask.request.path.startswith(self.prefix):
+            return flask.make_response(e)
+        request=flask.request
+        print >>sys.stderr, request.path, request.base_url, request.url, request.url_root
         parsed = ParsedException(e)
         rv = parsed.json
         rv['html'] = parsed.html
@@ -183,6 +194,9 @@ class KBAPI(Api):
 
 class KBResource(Resource):
     """Base Resource class for module that logs things"""
+
+    method_decorators = [get_authentication]
+
     def dispatch_request(self, *args, **kwargs):
         logger.info("%s.%s(%s)", self.__class__.__name__,
                     flask.request.method.lower(), kwargs)
@@ -199,12 +213,12 @@ class KBResource(Resource):
         return {}, 200, {'Allow': ', '.join(['HEAD'] + self.methods)}
 
 class AuthenticatedResource(KBResource):
-    method_decorators = [get_authentication]
-
+    # Remember, these are applied in the reverse order
+    method_decorators = [require_authentication, get_authentication]
 
 class Base(KBResource):
     """The root level of the API."""
-    def get(self):
+    def get(self, **kwargs):
         txt = config.get('API', 'root_text', 'How about a nice game of chess?')
         docs = config.get('API', 'doc_url', 'http://example.com')
         html = """
@@ -216,15 +230,27 @@ class Base(KBResource):
                 'documentation': docs,
                 'html': html.format(title=html_escape(txt), uri=docs)}
 
-class Shortcode(KBResource):
+class Test(AuthenticatedResource):
+    """Test the API."""
+    def get(self, **kwargs):
+        text = 'Hello, world!'
+        return { 'text': text,
+                 'html': '<html><head><title>{title}</title></head><body><h1>{text}</h1><p>{text}</p></body></html>'.format(title=text, text=text) }
+
+#        txt = "foo"
+#        docs = "bar"
+#        return {'text': txt,
+#                'documentation': docs}
+
+class Shortcode(AuthenticatedResource):
     """Convert a shortcode to a page id."""
-    def get(self, code):
+    def get(self, code, **kwargs):
         rv = {'id': code2id(code)}
         # Don't marshal the dictionary itself because we don't want to
         # clobber the 'id'
         rv.update(marshal(rv, {'rest_uri': fields.Url('article')}))
         return rv
-     
+
 class LabelArticles(AuthenticatedResource):
     def get(self, **kwargs):
         user = kwargs.get('_api_user')
@@ -388,8 +414,11 @@ if log_file is not None:
     logging.getLogger('kb_api').setLevel(getattr(logging, log_level))
 
 app = flask.Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = config.get('Authentication', 'db_uri')
+db.init_app(app)
 api = KBAPI(app, prefix=config.get('API', 'prefix', ''))
 api.add_resource(Base, '/')
+api.add_resource(Test, '/test')
 api.add_resource(ArticleCollection, '/articles')
 api.add_resource(Article,
                  '/articles/<int:id>',
