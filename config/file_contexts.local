@@ -1,0 +1,10 @@
+# The bulk of the API will be httpd_sys_content
+/var/www/kb_api(/.*)?			system_u:object_r:httpd_sys_content_t:s0
+# The lib directory needs to be R/W for the .pyc files
+/var/www/kb_api/lib/kb_api(/.*)?		system_u:object_r:httpd_sys_rw_content_t:s0
+# But then mark the .py files in there as read-only
+/var/www/kb_api/lib/kb_api/*.py		system_u:object_r:httpd_sys_r_content_t:s0
+# The log directory gets httpd_log context
+/var/www/kb_api/logs(/.*)?		system_u:object_r:httpd_log_t:s0
+# The setup directory and the key file in it need to be R/W
+/var/www/kb_api/conf/setup(/key)?	system_u:object_r:httpd_sys_rw_content_t:s0
