@@ -7,4 +7,7 @@
   ArticleLabels.post()?  If so, what do we do if some labels fail to
   apply?  Return a list of those that did?
 
-* Rate-limiting
+* Rate-limiting?
+
+* Switch to wtforms, and remove the hacky path checking in 
+dispatch_request/handle_error to better integrate with the admin interface
