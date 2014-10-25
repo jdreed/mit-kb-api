@@ -39,6 +39,50 @@
 {% endif %}
 {% endif %}
     </li>
+  </ul>
+  <span class="clearfix"></span>
+  <br/>
+  <ul class="inline">
+    <li>
+      <span class="textfield">Permissions:</span>
+      <table>
+      {% for perm in key.permissions %}
+      <tr><td>
+      <input type="hidden" name="permissions" value="{{ perm.space_key }}" />
+      {{ perm.space_key }}
+      </td>
+      {% for p in permissions.all %}
+	<td>
+	  {% if is_admin %}
+<label><input type="checkbox" name="permissions.{{ perm.space_key }}" value="{{ p[0] }}"{% if key.can(permissions[p[0]], perm.space_key) %}checked="checked"{% endif %} />{{ p[0]|permlabel }}</label>
+{% else %}
+{% if key.can(permissions[p[0]], perm.space_key) %}
+&#x2713;
+{% else %}
+&#x2717;
+{% endif %}
+{{ p[0]|permlabel }}
+{% endif %}
+</td>
+      {% endfor %}
+      </tr>
+      {% endfor %}
+      {% if is_admin %}
+      <tr><td colspan="{{ permissions.all|count +1 }}">Add New</td></tr>
+      <tr><td>
+      <input type="text" name="_new_permissions_space"/>
+      </td>
+      {% for p in permissions.all %}
+	<td><label><input type="checkbox" name="_new_permissions" value="{{ p[0] }}" />{{ p[0]|permlabel }}</label></td>
+      {% endfor %}
+      </tr>
+      {% endif %}
+      </table>
+    </li>
+  </ul>
+  <span class="clearfix"></span>
+  <br/>
+  <ul class="inline">
     <li>
       <br/>
       <input type="submit" name="edit_key_submit" value="Save Changes"/>

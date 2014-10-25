@@ -412,6 +412,7 @@ if log_file is not None:
     except IOError as e:
         print >>sys.stderr, "Warning: Cannot log to file: {0}".format(e)
     logging.getLogger('kb_api').setLevel(getattr(logging, log_level))
+logger.debug("init logging %s", __name__)
 
 app = flask.Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.get('Authentication', 'db_uri')

@@ -44,19 +44,19 @@ def html_escape(thing):
     return thing
 
 
-log_level = config.get('Logging', 'level', 'WARNING')
+# log_level = config.get('Logging', 'level', 'WARNING')
 log_file = config.get('Logging', 'file', None)
-if log_file is not None:
-    try:
-        hdlr = logging.FileHandler(log_file)
-        hdlr.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(message)s'))
-        logging.getLogger('kb_api').addHandler(hdlr)
-    except IOError as e:
-        print >>sys.stderr, "Warning: Cannot log to file: {0}".format(e)
-    logging.getLogger('kb_api').setLevel(getattr(logging, log_level))
-
-#logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-#logging.getLogger('sqlalchemy.engine').addHandler(hdlr)
+# if log_file is not None:
+#     try:
+hdlr = logging.FileHandler(log_file)
+hdlr.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(message)s'))
+#logging.getLogger('kb_api').addHandler(hdlr)
+#     except IOError as e:
+#         print >>sys.stderr, "Warning: Cannot log to file: {0}".format(e)
+#     logging.getLogger('kb_api').setLevel(getattr(logging, log_level))
+# logger.debug("init logging %s", __name__)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logging.getLogger('sqlalchemy.engine').addHandler(hdlr)
 
 app = flask.Flask(__name__,
                   template_folder=config.get('Admin', 'templates', 'templates'))
@@ -131,6 +131,12 @@ def ohnoes(exception, **kwargs):
     if isinstance(exception, auth.DatabaseError):
         return "Database error: {0}".format(exception)
     return "<pre>" + traceback.format_exc() + "</pre>", 500
+
+@app.template_filter('permlabel')
+def _filter_permlabel(value):
+    if not isinstance(value, basestring):
+        raise ValueError('String required')
+    return ' '.join([x[0].upper() + x[1:].lower() for x in value.split('_')])
 
 @app.template_filter('datetime')
 def _filter_datetime(value, fmt='long'):
@@ -245,6 +251,12 @@ def approve_key(remote_user=None, formdata={}, **kwargs):
     #     # correct and commit
 
 
+def strip_string(s):
+    s = s.strip()
+    if len(s) > 0:
+        return s
+    raise ValueError
+
 @app.route('/manage/edit', methods=['POST'])
 @authenticated_route(require_admin=True)
 @extract_formdata(required=('key_id',))
@@ -254,6 +266,7 @@ def admin_edit_key(remote_user=None, formdata={}, **kwargs):
         raise BadRequest('Key not found')
     tmplargs = {'remote_user': remote_user}
     tmplargs['key'] = key
+    tmplargs['permissions'] = auth.Permissions
     tmplargs['statuses'] = auth.Statuses.all
     tmplargs['is_admin'] = remote_user.is_administrator
     if formdata.get('edit_key_submit', None) is not None:
@@ -270,7 +283,14 @@ def admin_edit_key(remote_user=None, formdata={}, **kwargs):
             auth.update_db_object(key,
                                   ('description', 'email', 'owner', 'status'),
                                   update_vals)
-            return flask.redirect(flask.url_for('admin_root'))
+            for space_key in formdata.getlist('permissions', type=strip_string):
+                perms = map(lambda x: getattr(auth.Permissions, x), formdata.getlist('permissions.{0}'.format(space_key)))
+                key.set_permission(space_key, *perms)
+            if len(formdata['_new_permissions_space'].strip()):
+                perms = map(lambda x: getattr(auth.Permissions, x), formdata.getlist('_new_permissions'))
+                key.set_permission(formdata['_new_permissions_space'], *perms)
+            db.session.commit()
+            # return flask.redirect(flask.url_for('admin_root'))
         except KeyError as e:
             tmplargs['form_error'] = 'Some form values were missing: {0}'.format(e)
         except ValidationError as e:
@@ -286,6 +306,7 @@ def edit_key(remote_user=None, formdata={}, **kwargs):
         raise BadRequest('Key not found')
     tmplargs = {'remote_user': remote_user}
     tmplargs['key'] = key
+    tmplargs['permissions'] = auth.Permissions
     tmplargs['statuses'] = auth.Statuses.all
     tmplargs['is_admin'] = False
     tmplargs['deactivatable'] = key.status == auth.Statuses.ACTIVE

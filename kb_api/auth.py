@@ -1,4 +1,5 @@
 import logging
+import operator
 import re
 import uuid
 
@@ -26,14 +27,33 @@ class MalformedTokenError(Exception):
 class InvalidTokenError(Exception):
     pass
 
-class Permissions:
+class _Permissions(type):
+    def __getattr__(cls, name):
+        if name == 'NONE':
+            return cls._NONE
+        if name == 'all':
+            return sorted([x for x in cls.__dict__.iteritems() if not x[0].startswith('_')], key=operator.itemgetter(1))
+        raise AttributeError("{0} has no attribute '{1}'".format(cls.__name__,
+                                                                 name))
+
+class Permissions(object):
     """
     An enum of permissions
     """
-    NONE = 0x00
+    __metaclass__ = _Permissions
+
+    _NONE = 0x00
     READ = 0x01
     WRITE = 0x02
     WRITELABELS = 0x04
+
+    # @classmethod
+    # def all(cls):
+    #     return [x for x in cls.__dict__.iteritems() if not x[0].startswith('_') and not callable(x[1])]
+    
+    # @classmethod
+    # def _name(cls, perm):
+    #     return [k for k,v in cls.__dict__.iteritems() if v & perm != 0]
 
 class Token:
     _re = re.compile(r'bearer ([\w\-]+)$')

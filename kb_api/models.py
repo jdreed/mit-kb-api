@@ -122,7 +122,7 @@ class Key(Base):
     description = sql.Column(sql.Text())
     status_id = sql.Column(sql.Integer, sql.ForeignKey("status.id"), nullable=False)
 
-    permissions = sql.orm.relationship("Permission", backref="user")
+    permissions = sql.orm.relationship("Permission", backref="user", cascade='all, delete-orphan')
     status = sql.orm.relationship("Status", uselist=False)
     owner = sql.orm.relationship("User", uselist=False)
     
@@ -140,16 +140,21 @@ class Key(Base):
 
     def can(self, op, space):
         perm = self._get_permission(space)
-        logger.debug("perm=%s", perm)
+        logger.debug("perm = %s", perm)
         return False if perm is None else (op & perm.permissions != 0)
 
     def set_permission(self, space, *mode):
-        perms = reduce(lambda x, y: x | y, mode)
+        logger.debug("set_permission(%s, %s)", space, mode)
         perm = self._get_permission(space)
-        if perm is None:
-            self.permissions.append(Permission(space_key=space, permissions=perms))
+        if len(mode) < 1:
+            if perm is not None:
+                self.permissions.remove(perm)
         else:
-            perm.permissions = perms
+            perms = reduce(lambda x, y: x | y, mode)
+            if perm is None:
+                self.permissions.append(Permission(space_key=space, permissions=perms))
+            else:
+                perm.permissions = perms
 
     @validates('email')
     def require_nonempty(self, key, val):
