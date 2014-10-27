@@ -1,0 +1,31 @@
+RHEL 7:
+
+- install apache2, mod_wsgi from yum
+
+- install python-flask from yum
+python27-python-sqlalchemy
+
+-double check firewall
+
+- double check FUCKING SELINUX SETTINGS
+chcon -R -t public_content_t <path>
+
+except logs needs chcon -v --type=httpd_sys_content_rw_t logs for readwrite
+
+firewall:
+
+[root@kbapi-dev conf.d]# firewall-cmd --add-service=https
+
+(and http)
+
+install pip, html5lib, flask-restful
+python setup.py install_lib -d /var/www/kb_api/lib
+
+[root@kbapi-dev lib]# ln -s /opt/rh/python27/root/usr/lib64/python2.7/site-packages/sqlalchemy sqlalchemy
+
+
+mysql: create database kbapi
+create user 'kbapi'@'localhost' identified by '[redacted]'
+grant all privileges on kbapi.* to 'kbapi'@'localhost'
+
+pip install Flask-SQLAlchemy
