@@ -1,28 +1,19 @@
+import errno
+import logging
+import os
+import sys
+import threading
+import traceback
+
 from functools import wraps, partial
+
 import flask
 import jinja2
-import json
-import logging
-import sys
-import os
-import time
-import re
-import xml.etree.ElementTree as xmletree
-import html5lib
-import traceback
-from collections import defaultdict
-#from flask.ext.restful import Api, Resource, reqparse, abort, fields, marshal
+
 from werkzeug.exceptions import (HTTPException, Gone, InternalServerError,
                                  NotImplemented, NotFound, MethodNotAllowed,
                                  Forbidden, Unauthorized, NotAcceptable,
                                  BadRequest)
-# For Lock
-import threading
-import errno
-
-#from confluence.shortcode import code2id
-#from confluence.rpc import Session, RemoteException
-from xml.sax import saxutils
 
 from .config import APIConfig as config
 from . import auth
@@ -30,19 +21,7 @@ from .models import ValidationError
 from .database import db
 
 logger = logging.getLogger('kb_api.admin')
-#config = APIConfig()
 thread_lock = threading.Lock()
-#confluence_session = Session(config.get('Connection', 'host'))
-#confluence_session.login(config.get('Connection', 'username'),
-#                         config.get('Connection', 'password'))
-
-def html_escape(thing):
-    if isinstance(thing, dict):
-        return {k: html_escape(v) for k,v in thing.items()}
-    if isinstance(thing, str):
-        return saxutils.escape(thing)
-    return thing
-
 
 
 app = flask.Flask(__name__,
@@ -65,8 +44,6 @@ def authenticated_route(f=None, require_admin=False, optional=False):
         logger.debug('user=%s', user)
         if not optional and not user.authenticated:
             raise Exception("User not found")
-#            logger.debug("returning 401")
-#            flask.abort(403)
         if require_admin and not user.is_administrator: 
             logger.debug("returning 403")
             flask.abort(403)
@@ -85,20 +62,6 @@ def extract_formdata(f=None, required=tuple()):
                 raise BadRequest('form data missing')
         return f(*args, **kwargs)
     return auth_decorator
-
-#todo: handle undefinederror?
-
-#@app.before_first_request
-#def first_request():
-#    # Store the config somewhere other things can get to it
-#    setattr(flask.g, '_api_config', config)
-
-#    try:
-#        with auth.AuthenticationContext() as ctx:
-#            _ = auth.Statuses.ACTIVE
-#    except auth.AuthenticationError:
-#        return "hi"
-#        flask.abort(403)
 
 @app.errorhandler(403)
 def fix_403(exception, **kwargs):
@@ -134,6 +97,12 @@ def _filter_datetime(value, fmt='long'):
     if fmt == 'c':
         return value.ctime()
     return value.strftime("%Y-%m-%d %H:%M:%S")
+
+def strip_string(s):
+    s = s.strip()
+    if len(s) > 0:
+        return s
+    raise ValueError
 
 @app.route('/setup', methods=['GET', 'POST'])
 @extract_formdata(required=('setup_key',))
@@ -248,18 +217,6 @@ def approve_key(remote_user=None, formdata={}, **kwargs):
                           ('status',),
                           {'status': auth.Statuses.ACTIVE})
     return flask.redirect(flask.url_for('admin_root'))
-
-    # SQLAlchemy is not smart enough check if the data is dirty or not,
-    # and we don't want to bump the modtime if we don't need to.
-    #     # UGH concurrency, fix the freaking context to deal with the session
-    #     # correct and commit
-
-
-def strip_string(s):
-    s = s.strip()
-    if len(s) > 0:
-        return s
-    raise ValueError
 
 @app.route('/manage/edit', methods=['POST'])
 @authenticated_route(require_admin=True)
