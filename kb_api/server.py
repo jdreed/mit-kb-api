@@ -402,17 +402,6 @@ class Article(AuthenticatedResource):
         return { 'page': marshal(page,
                                  marshal_fields)}
 
-log_level = config.get('Logging', 'level', 'WARNING')
-log_file = config.get('Logging', 'file', None)
-if log_file is not None:
-    try:
-        hdlr = logging.FileHandler(log_file)
-        hdlr.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(message)s'))
-        logging.getLogger('kb_api').addHandler(hdlr)
-    except IOError as e:
-        print >>sys.stderr, "Warning: Cannot log to file: {0}".format(e)
-    logging.getLogger('kb_api').setLevel(getattr(logging, log_level))
-logger.debug("init logging %s", __name__)
 
 app = flask.Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.get('Authentication', 'db_uri')
