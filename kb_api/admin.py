@@ -153,7 +153,7 @@ def setup(formdata={}, **kwargs):
     return flask.render_template('setup.html', **tmplargs)
 
 
-@app.route('/enroll', methods=['GET'])
+@app.route('/', methods=['GET'])
 @authenticated_route(optional=True)
 def enroll_user(remote_user=None, formdata={}, **kwargs):
     if not remote_user.authenticated:
@@ -163,7 +163,7 @@ def enroll_user(remote_user=None, formdata={}, **kwargs):
                       is_admin=False)
     return flask.redirect(flask.url_for('user_root'))
 
-@app.route('/users', methods=['GET', 'POST'])
+@app.route('/admin/users', methods=['GET', 'POST'])
 @authenticated_route(require_admin=True)
 @extract_formdata(required=('users',))
 def manage_users(remote_user=None, formdata={}, **kwargs):
@@ -180,7 +180,7 @@ def manage_users(remote_user=None, formdata={}, **kwargs):
                                  remote_user=remote_user,
                                  users=users)
 
-@app.route('/manage', methods=['GET', 'POST'])
+@app.route('/admin', methods=['GET', 'POST'])
 @authenticated_route(require_admin=True)
 @extract_formdata(required=('owner', 'email', 'description'))
 def admin_root(remote_user=None, formdata={}, **kwargs):
@@ -205,7 +205,7 @@ def admin_root(remote_user=None, formdata={}, **kwargs):
                                  pending_keys=[k for k in keys if k.status == auth.Statuses.PENDING],
                                  **kwargs)
 
-@app.route('/approve', methods=['POST'])
+@app.route('/admin/approve', methods=['POST'])
 @authenticated_route(require_admin=True)
 @extract_formdata(required=('key_id',))
 def approve_key(remote_user=None, formdata={}, **kwargs):
@@ -219,7 +219,7 @@ def approve_key(remote_user=None, formdata={}, **kwargs):
                           {'status': auth.Statuses.ACTIVE})
     return flask.redirect(flask.url_for('admin_root'))
 
-@app.route('/manage/edit', methods=['POST'])
+@app.route('/admin/edit', methods=['POST'])
 @authenticated_route(require_admin=True)
 @extract_formdata(required=('key_id',))
 def admin_edit_key(remote_user=None, formdata={}, **kwargs):
@@ -291,7 +291,7 @@ def edit_key(remote_user=None, formdata={}, **kwargs):
     return flask.render_template('edit_key.html', **tmplargs);
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/user', methods=['GET', 'POST'])
 @authenticated_route
 @extract_formdata(required=('email', 'description'))
 def user_root(remote_user=None, formdata={}, **kwargs):
