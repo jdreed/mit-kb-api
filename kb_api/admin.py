@@ -41,7 +41,7 @@ def authenticated_route(f=None, require_admin=False, optional=False):
     @wraps(f)
     def auth_decorator(*args, **kwargs):
         user = auth.X509RemoteUser(flask.request.environ)
-        logger.debug('user=%s', user)
+        logger.info('user=%s', user)
         if not optional and not user.authenticated:
             raise Exception("User not found")
         if require_admin and not user.is_administrator: 
@@ -78,9 +78,10 @@ def fix_403(exception, **kwargs):
 
 @app.errorhandler(500)
 def ohnoes(exception, **kwargs):
+    logger.exception(exception)
     if isinstance(exception, auth.DatabaseError):
         return "Database error: {0}".format(exception)
-    return "<pre>" + traceback.format_exc() + "</pre>", 500
+    return "An internal error occurred: " + str(exception)
 
 @app.template_filter('permlabel')
 def _filter_permlabel(value):
