@@ -1,0 +1,7 @@
+{% macro textfield(name, size=50, default='', label=None, desc='', classes=['textfield']) -%}
+{% set css=classes|join(" ") %}
+<label class="{{ css }} textfield-label" for="{{ name }}">{{ name if label is none else label }}</label>
+<input class="{{ css }} textfield-input" type="text" name="{{ name }}" value="{{ formdata[name] if formdata is defined and name in formdata else default }}" size="{{ size }}"/>
+<span class="{{ css }} hint">{{ desc }}</span>
+</span>
+{%- endmacro %}

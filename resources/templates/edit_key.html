@@ -1,0 +1,54 @@
+{% set title='Edit key {0}'.format(key.key) %}
+{% import "form_helper.html" as forms with context %}
+{% include "_html_header.html" %}
+<body>
+{% include "_page_top.html" %}
+<h1>{{ title }}</h1>
+<div id="edit_key_form">
+<form class="clearfix" action="{{ url_for('admin_edit_key') if is_admin else url_for('edit_key') }}" method="POST">
+  <input name="key_id" type="hidden" value="{{ key.key }}" />
+  <ul class="inline">
+    <li>
+      {{ forms.textfield('email', label='Contact:', desc="(a secondary contact, such as your team's e-mail address)", size=40, default=key.email) }}
+    </li>
+    <li>
+      {{ forms.textfield('description', size=60, label='Description:', desc='(a brief description of where this will be used)', default=key.description) }}
+    </li>
+  </ul>
+  <span class="clearfix"></span>
+  <br/>
+  <ul class="inline">
+    <li>{% if is_admin %}{{ forms.textfield('owner', label='Owner:', desc="(an MIT user's e-mail address)", size=30, default=key.owner) }}{% else %}
+      <span class="textfield">Owner:</span>
+      <span class="textfield fakeinput">{{key.owner}}</span>
+      <span class="textfield hint">(To change the owner, please contact kb-help@mit.edu)</span>
+{% endif %}
+    </li>
+    <li>
+      <span class="textfield">Status:</span>
+      {% if is_admin %}
+      <select name="status">
+	{% for status in statuses %}
+	<option value="{{status}}"{% if status == key.status %}selected="selected"{% endif %}>{{status}}</option>
+	{% endfor %}
+      </select>
+      {% else %}
+      <span class="textfield">{{ key.status }} </span>
+      {% if deactivatable %}
+      <input type="checkbox" name="deactivate" value="yes"/><label for="deactivate"/>Deactivate this key?</label>
+{% endif %}
+{% endif %}
+    </li>
+    <li>
+      <br/>
+      <input type="submit" name="edit_key_submit" value="Save Changes"/>
+    </li>
+  </ul>
+{% if form_error is defined %}
+<p class="form_error">Error: {{ form_error }}</p>
+{% endif %}
+</form>
+</div>
+{% include "debug.html" %}
+</body>
+</html>

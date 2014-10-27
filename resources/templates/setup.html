@@ -1,0 +1,26 @@
+{% set title='Initial Setup' %}
+{% include "_html_header.html" %}
+<body>
+{% include "_page_top.html" %}
+<h1>{{ title }}</h1>
+<div id="setup_form">
+<form class="clearfix" action="{{ url_for('setup') }}" method="POST">
+  <p class="textfield">Enter your setup key to create the database and set {{ remote_user.username }} as an administrative user.</p>
+  <ul class="inline">
+    <li>
+      <label class="textfield textfield-label" for="setup_key">Setup Key:</label>
+      <input class="textfield textfield-input" type="text" name="setup_key" value="" size="36" />
+    </li>
+    <li>
+      <br/>
+      <input type="submit" name="edit_key_submit" value="Setup"/>
+    </li>
+  </ul>
+{% if form_error is defined %}
+<p class="form_error">Error: {{ form_error }}</p>
+{% endif %}
+</form>
+</div>
+{% include "debug.html" %}
+</body>
+</html>

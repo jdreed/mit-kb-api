@@ -1,0 +1,52 @@
+body {
+    font-family: "Trebuchet MS","Avant Garde",sans-serif;
+}
+
+.key {
+    font-family: "Courier New","Courier",monospace;
+}
+
+/* Form elements don't inherit by default. */
+input, select {
+    font-family: inherit;
+}
+
+.kb-logo {
+    margin-top: 1px;
+    font-size: 36px;
+    font-weight: 400;
+}
+
+.user-name {
+    font-size: 75%;
+}
+
+h1, h2, h3, h4, h5 {
+    font-weight: 500;
+    font-size: 150%;
+}
+
+.key-table th {
+    font-weight: 400;
+    font-size: 90%;
+}
+
+.key-table td {
+    font-size: 80%;
+}
+
+td .status-inactive,td .status-revoked {
+    text-decoration: line-through;
+}
+
+td .status-pending {
+    font-style: italic;
+}
+
+td .status-active {
+    font-weight: bold;
+}
+
+.hint {
+    font-size: 50%;
+}

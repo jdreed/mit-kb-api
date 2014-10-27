@@ -1,0 +1,60 @@
+{% macro edit_key_form(key_id, admin=False) -%}
+<form class="inline" action="{{ url_for('admin_edit_key') if admin else url_for('edit_key') }}" method="POST">
+<input type="hidden" name="key_id" value="{{ key_id }}" />
+<input type="submit" name="submit" value="Edit" />
+</form>
+{%- endmacro %}
+
+{% macro approve_form(key_id) -%}
+<form class="inline" action="{{ url_for('approve_key') }}" method="POST">
+<input type="hidden" name="key_id" value="{{ key_id }}" />
+<input type="submit" name="submit" value="Approve" />
+</form>
+{%- endmacro %}
+
+{% macro key_table(key_collection, approve=False, skip_owner=False, skip_created=False) -%}
+<table class="key-table">
+<tr>
+  <th>Key</th>
+  <th>Modified</th>
+  {% if not skip_created %}<th>Created</th>{% endif %}
+  {% if not skip_owner %}<th>Owner</th>{% endif %}
+  <th>Contact Address</th>
+  <th>Description</th>
+</tr>
+{% for key in key_collection %} 
+<tr class="{{ loop.cycle('odd-row', 'even-row') }} status-{{key.status|lower}}">
+  <td class="key-column"><span class="key status-{{key.status|lower}}">{{ key.key }}</span><span class="status">({{ key.status }})</span></td>
+  <td class="modified">{{ key.modified|datetime }}</td>
+  {% if not skip_created %}<td>{{ key.created|datetime('shortdate') }}</td>{% endif %}
+  {% if not skip_owner %}<td>{{ key.owner }}</td>{% endif %}
+  <td>{{ key.email }}</td>
+  <td>{{ key.description }}</td>
+  <td class="buttons-column">
+    {% if approve %}
+    {{ approve_form(key.key) }}
+    {% endif %}
+    {% if is_admin or key.status|upper == 'ACTIVE' %}
+    {{ edit_key_form(key.key, is_admin) }}
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</table>
+{%- endmacro %}
+
+{% macro key_list(key_collection, approve=False, skip_owner=False, skip_created=False) -%}
+<ul class="key-list">
+{% for key in key_collection %} 
+<li class="{{ loop.cycle('odd-row', 'even-row') }} status-{{key.status|lower}}">
+  <span class="key">{{ key.key }}</span>
+  <span class="description">{{ key.description }}</span>
+  <br/>
+  <span class="email">{{ key.email }}</span>
+  <span class="modified">{{ key.modified|datetime }}</span>
+  <span class="status">{{ key.status }}</span>
+  {{ edit_key_form(key.key, is_admin) }}
+</li>
+{% endfor %}
+</ul>
+{%- endmacro %}

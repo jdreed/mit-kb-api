@@ -1,0 +1,198 @@
+body {
+    margin: 5px 5px 0px;
+}
+
+.full-width {
+    margin: 0px -5px;
+    padding-right: 5px;
+}
+
+.top-of-page {
+    margin-top: -5px;
+}
+
+.user-name {
+    color: white;
+    line-height: 2em;
+}
+
+.user-header {
+    text-align: right;
+    background-color: #2b2b2b;
+}
+
+.branding-header {
+    background: #d3d3d3 url("/images/background-top.jpg") repeat-x 0 -4px;
+    padding: 15px 10px 5px;
+}
+
+/* Use the :after pseudo-element to clear the float. */
+.clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+/* Using divs as images for hover logos */
+#mit-logo {
+    background-image: url("/images/mit-ist-web-large-off-01.png");
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+    float: left;
+    height: 38px;
+    padding-right: 5px;
+
+    width: 72px;
+}
+
+#mit-logo:hover {
+    background-image: url("/images/mit-ist-web-large-on-01.png");
+}
+
+#ist-logo {
+    background-image: url('/images/ist-web-large-off-01.png');
+    background-position: 0px -8px;
+    background-repeat: no-repeat;
+    float: left;
+    height: 54px;
+    width: 199px;
+}
+
+#ist-logo:hover {
+    background-image: url('/images/ist-web-large-on-01.png');
+}
+
+#logo-divider {
+    border-left: 1px solid black;
+    float: left;
+    height: 54px;
+    width: 14px;
+    margin-left: 14px;
+    margin-top: -7px;
+}
+
+.kb-logo {
+    color: #86b330;
+    float: right;
+    margin-top: -7px;
+    margin-right: 40px;
+}
+
+#key-table {
+    clear: both;
+    padding-left: 15px;
+}
+
+.key-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.key-table tr {
+    line-height: 200%;
+
+}
+
+
+.key-column {
+    width: 30em;
+}
+
+.key {
+    padding-right: 5px;
+}
+
+.modified {
+    width: 11em;
+}
+
+ul {
+    padding-left: 15px;
+}
+
+.buttons-column {
+    width: 6em;
+    text-align: right;
+    padding-right: 5px;
+}
+
+#key-table th {
+    text-align: left;
+    text-decoration: underline;
+}
+
+.odd-row {
+    background-color: #698590; /* 65818c 6581590; */
+}
+
+.even-row {
+    background-color: #d6d3ce;
+}
+
+.key-list {
+    list-style-type: none;
+    padding-left: 0.25em;
+    margin: 0px;
+    overflow: hidden;
+    width: auto;
+}
+
+h1, h2, h3, h4, h5 {
+    color: #86b330;
+    margin-top: 0em;
+    margin-bottom: 0.25em;
+}
+
+form {
+    margin: 0;
+}
+
+
+
+/*form.inline input {
+    line-height: 90%;
+}*/
+/* inline forms */
+form ul.inline {
+    list-style-type: none;
+    margin: 0;
+}
+
+form ul.inline li {
+    float: left;
+    display: block;
+}
+
+form ul.inline .textfield {
+    display: block;
+}
+
+form ul.inline .hint {
+    width: 22em;
+    display: block;
+}
+
+form ul.inline .fakeinput {
+    font-size: 90%;
+    margin: 2px;
+    padding: 1px;
+    border: 1px transparent;
+}
+
+.form_error {
+    background-color: #d2b48c;
+    clear: both;
+    margin: 1em;
+    padding: 5px;
+}
+
+.description {
+    padding-left: 20px;
+}
+
+.key-list input {
+    float: right;
+    color:red;
+}

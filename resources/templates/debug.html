@@ -1,0 +1,15 @@
+{% if _debug is defined %}
+<p>Debug info:</p>
+{% if _debug is mapping %}
+<pre>
+{% for k in _debug %}
+<strong>{{ k }}</strong> = {{ _debug[k] }}
+{% endfor %}
+</pre>
+{% else %}
+<pre>
+{{ _debug }}
+</pre>
+{% endif %}
+{% else %}
+{% endif %}

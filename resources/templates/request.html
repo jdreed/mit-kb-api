@@ -1,0 +1,46 @@
+{% set title = 'Manage Your Keys' %}
+{% import "form_helper.html" as forms with context %}
+{% include "_html_header.html" %}
+<body>
+{% include "_page_top.html" %}
+
+
+<div id="request-key">
+<h1>Request a key</h1>
+<form class="clearfix" action="{{ url_for('user_root') }}" method="POST">
+  <ul class="inline">
+    <li>
+      {{ forms.textfield('email', label='Contact:', desc="(a secondary contact, such as your team's e-mail address)", size=40) }}
+    </li>
+    <li>
+      {{ forms.textfield('description', size=60, label='Description:', desc='(a brief description of where this will be used)') }}
+    </li>
+    <li>
+      <br>
+      <input type="submit" name="submit" value="Request Key"/>
+    </li>
+  </ul>
+  {% if form_error is defined %}
+  <p class="form_error">Error: {{form_error}}</p>
+  {% endif %}
+</form>
+</div>
+
+<div id="api-keys">
+<h1>Your API Keys</h1>
+<div id="key-table">
+{% import "key_table.html" as kt with context %}
+{% if all_keys %}
+{{ kt.key_table(all_keys, skip_owner=True, skip_created=True) }}
+{% else %}
+<p>You do not currently have any API keys.</p>
+{% endif %}
+</div>
+</div>
+
+
+
+
+{% include "debug.html" %}
+</body>
+</html>
