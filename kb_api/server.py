@@ -322,7 +322,7 @@ class ArticleLabels(AuthenticatedResource):
             page = confluence_session.getPageById(id)
         except RemoteException:
             raise NotFound("Unable to retrieve a page with id: {0}".format(id))
-        require_access(user, auth.Permissions.WRITE, page.space)
+        require_access(user, auth.Permissions.ADD_LABEL, page.space)
         if not confluence_session.addLabelByName(name, id):
             raise InternalServerError('Failed to add label.  No more info available.')
         rv = {'data': 'Label added',

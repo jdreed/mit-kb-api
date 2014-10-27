@@ -44,16 +44,9 @@ class Permissions(object):
 
     _NONE = 0x00
     READ = 0x01
-    WRITE = 0x02
-    WRITELABELS = 0x04
-
-    # @classmethod
-    # def all(cls):
-    #     return [x for x in cls.__dict__.iteritems() if not x[0].startswith('_') and not callable(x[1])]
-    
-    # @classmethod
-    # def _name(cls, perm):
-    #     return [k for k,v in cls.__dict__.iteritems() if v & perm != 0]
+    ADD_LABEL = 0x02
+    REMOVE_LABEL = 0x04
+    EDIT_ARTICLE = 0x08
 
 class Token:
     _re = re.compile(r'bearer ([\w\-]+)$')
