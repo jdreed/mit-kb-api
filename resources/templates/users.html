@@ -1,0 +1,30 @@
+{% set title = 'Manage Users' %}
+{% import "form_helper.html" as forms with context %}
+{% include "_html_header.html" %}
+<body>
+{% include "_page_top.html" %}
+
+<h1>{{ title }}</h1>
+<form class="clearfix" action="{{ url_for('manage_users') }}" method="POST">
+
+<table class="key-table">
+<tr>
+  <th>Username</th>
+  <th>Real Name</th>
+  <th>Email</th>
+  <th>Administrator</th>
+</tr>
+{% for user in users %} 
+<tr class="{{ loop.cycle('odd-row', 'even-row') }}">
+  <td>{{ user.username }}</td>
+  <td>{{ user.real_name }} </td>
+  <td>{{ user.email }} </td>
+  <td><input type="hidden" name="users" value="{{ user.username }}"><input type="checkbox" name="admin-{{ user.id }}" {% if user.is_admin %}checked="checked"{% endif %} value="yes"></td>
+</tr>
+{% endfor %}
+</table>
+<input type="submit" name="edit_user_submit" value="Save Changes">
+</form>
+
+</body>
+</html>

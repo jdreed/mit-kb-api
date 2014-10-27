@@ -278,6 +278,9 @@ def add_key(owner, **kwargs):
 def get_all_keys():
     return models.Key.query.order_by(models.Key.modified.desc()).all()
 
+def get_all_users():
+    return models.User.query.order_by(models.User.username).all()
+
 def lookup_key(key):
     return _db_select_one(models.Key.query.filter(models.Key.key == key))
 

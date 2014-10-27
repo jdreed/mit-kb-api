@@ -206,6 +206,23 @@ def enroll_user(remote_user=None, formdata={}, **kwargs):
                       is_admin=False)
     return flask.redirect(flask.url_for('user_root'))
 
+@app.route('/users', methods=['GET', 'POST'])
+@authenticated_route(require_admin=True)
+@extract_formdata(required=('users',))
+def manage_users(remote_user=None, formdata={}, **kwargs):
+    # TODO: move this to auth.something; check if we removed our own access
+    if flask.request.method == 'POST':
+        for username in formdata.getlist('users'):
+            user = auth.lookup_user(username)
+            if user is not None:
+                admin = formdata.get('admin-{0}'.format(user.id), 'no') == 'yes'
+                user.is_admin = admin
+        db.session.commit()
+    users = auth.get_all_users()
+    return flask.render_template('users.html',
+                                 remote_user=remote_user,
+                                 users=users)
+
 @app.route('/manage', methods=['GET', 'POST'])
 @authenticated_route(require_admin=True)
 @extract_formdata(required=('owner', 'email', 'description'))
