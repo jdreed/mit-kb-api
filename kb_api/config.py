@@ -2,7 +2,7 @@ import io
 import logging
 import os.path
 
-from ConfigParser import SafeConfigParser
+from ConfigParser import SafeConfigParser, NoOptionError
 
 logger = logging.getLogger('kb_api.config')
 
@@ -24,14 +24,11 @@ not_authenticated=You did not supply an access token.
 class _APIConfig(SafeConfigParser):
     def __init__(self, config_file=None):
         SafeConfigParser.__init__(self)
-        logger.debug("Parsing default text")
         self.readfp(io.BytesIO(CONFIG_DEFAULTS))
-        logger.debug('Reading default config files: %s', CONFIG_FILE_DEFAULTS)
         config_read = self.read(CONFIG_FILE_DEFAULTS)
         if config_file is not None:
-            logger.debug('Reading from specified config file: %s', config_file)
+            logger.info('Reading from specified config file: %s', config_file)
             config_read += self.read(config_file)
-        logger.debug('Read from files: %s', config_read)
         if len(config_read) == 0:
             raise ValueError('Could not find any config file to use.')
         # Validate the config now, not when we need stuff from it
@@ -42,6 +39,16 @@ class _APIConfig(SafeConfigParser):
                     err = err.format(section, option)
                     logger.error(err)
                     raise ValueError(err)
+
+    def get(self, section, option, *args):
+        if len(args) > 1:
+            raise ValueError("APIConfig.get(section, option, [default])")
+        try:
+            return SafeConfigParser.get(self, section, option)
+        except NoOptionError as e:
+            if len(args) > 0:
+                return args[0]
+            raise
 
     @property
     def default_permissions(self):
